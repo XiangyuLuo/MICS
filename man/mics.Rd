@@ -134,10 +134,8 @@ for(i in 1:n){
   Ometh <- cbind(Ometh, tmp)
 }
 
-sum(Ometh > 1)
 Ometh[Ometh > 1] <- 1
 
-sum(Ometh < 0)
 Ometh[Ometh < 0] <- 0
 
 rownames(Ometh) <- paste0("cpg", 1:m)
