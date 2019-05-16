@@ -6,3 +6,9 @@ Installation instruction:
 ```
   devtools::install_github("XiangyuLuo/MICS")
 ```
+
+See an example:
+```
+library(MICS)
+example(mics)
+```
