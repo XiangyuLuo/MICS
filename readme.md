@@ -4,7 +4,7 @@ The R code to generate the simulation data and run MICS can be seen in the examp
 
 Installation instruction:
 ```
-  devtools::install_github("XiangyuLuo/MICS")
+devtools::install_github("XiangyuLuo/MICS")
 ```
 
 See an example:
