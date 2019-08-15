@@ -11,8 +11,10 @@
 #' Note that if there is only one confounding factor, X also needs to be in a matrix form and has only one column.
 #' @param Y The outcome vector. Each component corresponds to a sample.
 #'
-#' @return The cell-type-specific p-value matrix. Rows represent CpG sites and columns are cell types.
-#' A small p-value at the matrix entry (j,k) indicates that CpG site j may play a mediator role in cell type k.
+#' @return A list containing the following items. \item{pval_mediator}{The cell-type-specific p-value matrix by regressing the mediator to the exposure, where rows represent CpG sites and columns are cell types.}
+#' \item{pval_outcome}{The cell-type-specific p-value matrix by regressing the outcome to the mediator and the exposure, where rows represent CpG sites and columns are cell types.}
+#' \item{pval_joint_sq}{The joint cell-type-specific p-value matrix by maximizing and squaring, where rows represent CpG sites and columns are cell types.}
+#' \item{P_matr}{The cell proportion matrix, where rows are cell types and columns correspond to samples.}
 #'
 #' @examples
 #' rm(list = ls())
@@ -118,8 +120,10 @@
 #'   Ometh <- cbind(Ometh, tmp)
 #' }
 #'
+#' sum(Ometh > 1)
 #' Ometh[Ometh > 1] <- 1
 #'
+#' sum(Ometh < 0)
 #' Ometh[Ometh < 0] <- 0
 #'
 #' rownames(Ometh) <- paste0("cpg", 1:m)
@@ -131,7 +135,8 @@
 #' ###########################################################
 #'
 #' t1 <- Sys.time()
-#' pval_joint_sq <- mics(Ometh, mu_matr, S, X, Y)
+#' out <- mics(Ometh, mu_matr, S, X, Y)
+#' pval_joint_sq <- out$pval_joint_sq
 #' t2 <- Sys.time()
 #' print(t2 - t1)
 
@@ -268,17 +273,36 @@ mics <- function(meth_data, meth_ref, S, X, Y, thd = 0.03){
 	########################################################
 	# step 5. Joint significance method followed by squaring
 	########################################################
+	#pval_mediator
+	pval_mediator <- beta_pval
+	colnames(pval_mediator) <- colnames(ref_meth_comm)
+	rownames(pval_mediator) <- rownames(Ometh)
+
+  	#pval_outcome
+	pval_outcome <- gamma_tilde_pval
+	colnames(pval_outcome) <- colnames(ref_meth_comm)
+	rownames(pval_outcome) <- rownames(Ometh)
+
+	#pval_joint_sq
 	pval_joint <- matrix(NA, m, K)
 	for(j in 1:m){
-		for(k in 1:K){
-			pval_joint[j,k] <- max(beta_pval[j,k], gamma_tilde_pval[j,k])
-		}
+	  for(k in 1:K){
+	    pval_joint[j,k] <- max(beta_pval[j,k], gamma_tilde_pval[j,k])
+	  }
 	}
 
 	pval_joint_sq <- pval_joint^2
 	colnames(pval_joint_sq) <- colnames(ref_meth_comm)
 	rownames(pval_joint_sq) <- rownames(Ometh)
 
+
 	#return values
-	return(pval_joint_sq)
+  	out <- list()
+  	out$pval_mediator <- pval_mediator
+  	out$pval_outcome <- pval_outcome
+  	out$pval_joint_sq <- pval_joint_sq
+
+ 	rownames(P_matr) <- colnames(ref_meth_comm)
+  	out$P_matr <- P_matr
+	return(out)
 }
