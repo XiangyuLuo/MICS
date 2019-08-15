@@ -278,7 +278,7 @@ mics <- function(meth_data, meth_ref, S, X, Y, thd = 0.03){
 	colnames(pval_mediator) <- colnames(ref_meth_comm)
 	rownames(pval_mediator) <- rownames(Ometh)
 
-  	#pval_outcome
+  #pval_outcome
 	pval_outcome <- gamma_tilde_pval
 	colnames(pval_outcome) <- colnames(ref_meth_comm)
 	rownames(pval_outcome) <- rownames(Ometh)
@@ -297,12 +297,12 @@ mics <- function(meth_data, meth_ref, S, X, Y, thd = 0.03){
 
 
 	#return values
-  	out <- list()
-  	out$pval_mediator <- pval_mediator
-  	out$pval_outcome <- pval_outcome
-  	out$pval_joint_sq <- pval_joint_sq
+  out <- list()
+  out$pval_mediator <- pval_mediator
+  out$pval_outcome <- pval_outcome
+  out$pval_joint_sq <- pval_joint_sq
 
- 	rownames(P_matr) <- colnames(ref_meth_comm)
-  	out$P_matr <- P_matr
+  rownames(P_matr) <- colnames(ref_meth_comm)
+  out$P_matr <- P_matr
 	return(out)
 }
