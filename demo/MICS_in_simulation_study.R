@@ -114,12 +114,12 @@ colnames(mu_matr) <- paste0("cell_type", 1:K)
 #Conduct MICS
 #############################################################################
 library(MICS)
-pval_joint_sq <- mics(Ometh, mu_matr, S, X, Y)
+out <- mics(Ometh, mu_matr, S, X, Y)
 
 library(qqman)
 pdf("pval_joint_significance_sq.pdf")
 for(k in 1:K){
-  qq(pval_joint_sq[,k], main = paste0("Cell type ", k))
+  qq(out$pval_joint_sq[,k], main = paste0("Cell type ", k))
 }
 dev.off()
 
