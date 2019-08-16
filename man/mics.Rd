@@ -4,14 +4,11 @@
 \alias{mics}
 \title{Testing cell-type-specific mediation effects from bulk methylation data}
 \usage{
-mics(meth_data, meth_ref, S, X, Y, thd = 0.03)
+mics(meth_data, S, X, Y, cell_prop = NA, meth_ref = NA, thd = 0)
 }
 \arguments{
 \item{meth_data}{The observed methylation matrix. Rows represent CpG sites and columns are samples.
-Its CpG site names are required to align with the CpG site names of the methylation reference when estimating cellular compositions.}
-
-\item{meth_ref}{The methylation reference matrix. Rows represent CpG sites and columns are cell type annotations.
-Its CpG site names are required to align with the CpG site names of the observed methylation matrix when estimating cellular compositions.}
+Its CpG site names are required in order to automatically align with the CpG site names of the methylation reference when estimating cellular compositions.}
 
 \item{S}{The exposure vector. Each component corresponds to a sample.}
 
@@ -20,8 +17,13 @@ Note that if there is only one confounding factor, X also needs to be in a matri
 
 \item{Y}{The outcome vector. Each component corresponds to a sample.}
 
+\item{cell_prop}{The cellular proportion matrix, where rows correspond to cell types and columns are samples. The default is NA, in which case the cell proportions are estimated from the methylation reference.}
+
+\item{meth_ref}{The methylation reference matrix. If cell_prop is NA, meth_ref must be specified, where rows represent CpG sites and columns are cell type annotations.
+Its CpG site names are required in order to automatically align with the CpG site names of the observed methylation matrix when estimating cellular compositions.}
+
 \item{thd}{The threshold used to filter out cell types with a small proportion. After estimating the cellular composition for each sample,
-we filter out the cell types with its proportions' 0.75 quantile across all samples less than the threshold. The default is 0.03.}
+we filter out the cell types with its proportions' 0.75 quantile across all samples less than the threshold. The default is 0, which means that no cell type would be removed.}
 }
 \value{
 A list containing the following items. \item{pval_mediator}{The cell-type-specific p-value matrix by regressing the mediator to the exposure, where rows represent CpG sites and columns are cell types.}
@@ -151,7 +153,7 @@ colnames(mu_matr) <- paste0("cell_type", 1:K)
 ###########################################################
 
 t1 <- Sys.time()
-out <- mics(Ometh, mu_matr, S, X, Y)
+out <- mics(Ometh, S, X, Y, meth_ref = mu_matr)
 pval_joint_sq <- out$pval_joint_sq
 t2 <- Sys.time()
 print(t2 - t1)
