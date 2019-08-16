@@ -1,15 +1,16 @@
 #' Testing cell-type-specific mediation effects from bulk methylation data
 #'
 #' @param meth_data The observed methylation matrix. Rows represent CpG sites and columns are samples.
-#' Its CpG site names are required to align with the CpG site names of the methylation reference when estimating cellular compositions.
-#' @param meth_ref The methylation reference matrix. Rows represent CpG sites and columns are cell type annotations.
-#' Its CpG site names are required to align with the CpG site names of the observed methylation matrix when estimating cellular compositions.
-#' @param thd The threshold used to filter out cell types with a small proportion. After estimating the cellular composition for each sample,
-#' we filter out the cell types with its proportions' 0.75 quantile across all samples less than the threshold. The default is 0.03.
+#' Its CpG site names are required in order to automatically align with the CpG site names of the methylation reference when estimating cellular compositions.
 #' @param S The exposure vector. Each component corresponds to a sample.
 #' @param X The confounding factor matrix. Rows are samples and columns represent confounding factors.
 #' Note that if there is only one confounding factor, X also needs to be in a matrix form and has only one column.
 #' @param Y The outcome vector. Each component corresponds to a sample.
+#' @param cell_prop The cellular proportion matrix, where rows correspond to cell types and columns are samples. The default is NA, in which case the cell proportions are estimated from the methylation reference.
+#' @param meth_ref The methylation reference matrix. If cell_prop is NA, meth_ref must be specified, where rows represent CpG sites and columns are cell type annotations.
+#' Its CpG site names are required in order to automatically align with the CpG site names of the observed methylation matrix when estimating cellular compositions.
+#' @param thd The threshold used to filter out cell types with a small proportion. After estimating the cellular composition for each sample,
+#' we filter out the cell types with its proportions' 0.75 quantile across all samples less than the threshold. The default is 0, which means that no cell type would be removed.
 #'
 #' @return A list containing the following items. \item{pval_mediator}{The cell-type-specific p-value matrix by regressing the mediator to the exposure, where rows represent CpG sites and columns are cell types.}
 #' \item{pval_outcome}{The cell-type-specific p-value matrix by regressing the outcome to the mediator and the exposure, where rows represent CpG sites and columns are cell types.}
@@ -135,7 +136,7 @@
 #' ###########################################################
 #'
 #' t1 <- Sys.time()
-#' out <- mics(Ometh, mu_matr, S, X, Y)
+#' out <- mics(Ometh, S, X, Y, meth_ref = mu_matr)
 #' pval_joint_sq <- out$pval_joint_sq
 #' t2 <- Sys.time()
 #' print(t2 - t1)
@@ -143,7 +144,11 @@
 
 
 
-mics <- function(meth_data, meth_ref, S, X, Y, thd = 0.03){
+mics <- function(meth_data, S, X, Y, cell_prop = NA, meth_ref = NA, thd = 0){
+  if(is.na(cell_prop)[1]&is.na(meth_ref)[1]){
+    stop("Either cell_prop or meth_ref should be specified!\n")
+  }
+
 	############################################
 	# step 1. preparation
 	############################################
@@ -162,47 +167,57 @@ mics <- function(meth_data, meth_ref, S, X, Y, thd = 0.03){
 	n <- ncol(Ometh)
 
 	#number of cell types
-	K <- ncol(ref_meth)
+	if(is.na(cell_prop)[1]){
+	  K <- ncol(ref_meth)
+	}else{
+	  K <- nrow(cell_prop)
+	}
 
-	#find the common CpG sites between Ometh and ref_meth
-	#only use the common CpG sites to estimate cell proportions
-	ind <- match(rownames(Ometh), rownames(ref_meth))
+	if(is.na(cell_prop)[1]){
 
-	#the boolean vector indicating which one is not NA
-	#In this way, Ometh_comm and ref_meth_comm have the same CpG site name for each row.
-	no_na <- !is.na(ind)
-	Ometh_comm <- Ometh[no_na,]
-	ref_meth_comm <- ref_meth[ind[no_na], ]
+	  #find the common CpG sites between Ometh and ref_meth
+	  #only use the common CpG sites to estimate cell proportions
+	  ind <- match(rownames(Ometh), rownames(ref_meth))
+
+	  #the boolean vector indicating which one is not NA
+	  #In this way, Ometh_comm and ref_meth_comm have the same CpG site name for each row.
+	  no_na <- !is.na(ind)
+	  Ometh_comm <- Ometh[no_na,]
+	  ref_meth_comm <- ref_meth[ind[no_na], ]
 
 
-	##############################################
-	# step 2. estimate cellular compositions
-	##############################################
+	  ##############################################
+	  # step 2. estimate cellular compositions
+	  ##############################################
 
-	#we need to use "solve.QP" function in R package "quadprog"
-	#use ?solve.QP to see the following notations
-	Dmat <- 2*t(ref_meth_comm) %*% ref_meth_comm
+	  #we need to use "solve.QP" function in R package "quadprog"
+	  #use ?solve.QP to see the following notations
+	  Dmat <- 2*t(ref_meth_comm) %*% ref_meth_comm
 
-	Amat <- cbind(rep(1, K), diag(rep(1,K)))
-	bvec <- c(1, rep(0, K))
+	  Amat <- cbind(rep(1, K), diag(rep(1,K)))
+	  bvec <- c(1, rep(0, K))
 
-	#estimate the cell proportion P matrix
-	# cell types in row and samples in column
-	P_matr <- sapply(1:n, function(i){
-				dvec <- 2 * t(ref_meth_comm) %*% as.numeric(Ometh_comm[ ,i])
-				solu <- solve.QP(Dmat, dvec, Amat, bvec, meq = 1)
-				#meq = 1 means that the first constraint is treated as an equal contraint
-				solu$solution
-			})
+	  #estimate the cell proportion P matrix
+	  # cell types in row and samples in column
+	  P_matr <- sapply(1:n, function(i){
+	    dvec <- 2 * t(ref_meth_comm) %*% as.numeric(Ometh_comm[ ,i])
+	    solu <- solve.QP(Dmat, dvec, Amat, bvec, meq = 1)
+	    #meq = 1 means that the first constraint is treated as an equal contraint
+	    solu$solution
+	  })
+	  rownames(P_matr) <- colnames(ref_meth_comm)
+	  colnames(P_matr) <- colnames(Ometh_comm)
+	}else{
+	  P_matr <- cell_prop
+	}
 
 	#filter out rare cell types
 	del_celltype <- which(apply(P_matr, 1, quantile, 0.75) < thd)
 
 	if(length(del_celltype) > 0){
-		P_matr <- P_matr[-del_celltype, ]
-		P_matr <- P_matr / colSums(P_matr)
-		K <- K - length(del_celltype)
-		ref_meth_comm <- ref_meth_comm[ ,-del_celltype]
+	  P_matr <- P_matr[-del_celltype, ]
+	  P_matr <- P_matr / colSums(P_matr)
+	  K <- K - length(del_celltype)
 	}
 
 	##############################################
@@ -233,7 +248,7 @@ mics <- function(meth_data, meth_ref, S, X, Y, thd = 0.03){
 		beta_pval <- rbind(beta_pval, fit.m.sum$coef[K+(1:K),4])
 	}
 
-	colnames(beta_pval) <- colnames(ref_meth_comm)
+	colnames(beta_pval) <- rownames(P_matr)
 	rownames(beta_pval) <- rownames(Ometh)
 
 	##############################################
@@ -267,7 +282,7 @@ mics <- function(meth_data, meth_ref, S, X, Y, thd = 0.03){
 		gamma_tilde_pval <- rbind(gamma_tilde_pval, fit.m.sum$coef[K+(1:K),4])
 	}
 
-	colnames(gamma_tilde_pval) <- colnames(ref_meth_comm)
+	colnames(gamma_tilde_pval) <- rownames(P_matr)
 	rownames(gamma_tilde_pval) <- rownames(Ometh)
 
 	########################################################
@@ -275,12 +290,12 @@ mics <- function(meth_data, meth_ref, S, X, Y, thd = 0.03){
 	########################################################
 	#pval_mediator
 	pval_mediator <- beta_pval
-	colnames(pval_mediator) <- colnames(ref_meth_comm)
+	colnames(pval_mediator) <- rownames(P_matr)
 	rownames(pval_mediator) <- rownames(Ometh)
 
   #pval_outcome
 	pval_outcome <- gamma_tilde_pval
-	colnames(pval_outcome) <- colnames(ref_meth_comm)
+	colnames(pval_outcome) <- rownames(P_matr)
 	rownames(pval_outcome) <- rownames(Ometh)
 
 	#pval_joint_sq
@@ -292,7 +307,7 @@ mics <- function(meth_data, meth_ref, S, X, Y, thd = 0.03){
 	}
 
 	pval_joint_sq <- pval_joint^2
-	colnames(pval_joint_sq) <- colnames(ref_meth_comm)
+	colnames(pval_joint_sq) <- rownames(P_matr)
 	rownames(pval_joint_sq) <- rownames(Ometh)
 
 
@@ -302,7 +317,6 @@ mics <- function(meth_data, meth_ref, S, X, Y, thd = 0.03){
   out$pval_outcome <- pval_outcome
   out$pval_joint_sq <- pval_joint_sq
 
-  rownames(P_matr) <- colnames(ref_meth_comm)
   out$P_matr <- P_matr
 	return(out)
 }
