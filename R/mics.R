@@ -9,6 +9,8 @@
 #' @param cell_prop The cellular proportion matrix, where rows correspond to cell types and columns are samples. The default is NA, in which case the cell proportions are estimated from the methylation reference.
 #' @param meth_ref The methylation reference matrix. If cell_prop is NA, meth_ref must be specified, where rows represent CpG sites and columns are cell type annotations.
 #' Its CpG site names are required in order to automatically align with the CpG site names of the observed methylation matrix when estimating cellular compositions.
+#' @param cpg_ind The index vector of the informative cpg sites. The default is NA, which means that all cpg sites are used to estimate
+#' the cellular compositions. Otherwise, only the informative cpg sites are used.
 #' @param thd The threshold used to filter out cell types with a small proportion. After estimating the cellular composition for each sample,
 #' we filter out the cell types with its proportions' 0.75 quantile across all samples less than the threshold. The default is 0, which means that no cell type would be removed.
 #'
@@ -144,10 +146,11 @@
 
 
 
-mics <- function(meth_data, S, X, Y, cell_prop = NA, meth_ref = NA, thd = 0){
+mics <- function(meth_data, S, X, Y, cell_prop = NA, meth_ref = NA, cpg_ind = NA, thd = 0){
   if(is.na(cell_prop)[1]&is.na(meth_ref)[1]){
     stop("Either cell_prop or meth_ref should be specified!\n")
   }
+
 
 	############################################
 	# step 1. preparation
@@ -175,14 +178,20 @@ mics <- function(meth_data, S, X, Y, cell_prop = NA, meth_ref = NA, thd = 0){
 
 	if(is.na(cell_prop)[1]){
 
+	  #If the informative cpg sites are available
+	  if(!is.na(cpg_ind)[1]){
+      Ometh_tmp <- Ometh[cpg_ind, ]
+	  }else{
+	    Ometh_tmp <- Ometh
+	  }
 	  #find the common CpG sites between Ometh and ref_meth
 	  #only use the common CpG sites to estimate cell proportions
-	  ind <- match(rownames(Ometh), rownames(ref_meth))
+	  ind <- match(rownames(Ometh_tmp), rownames(ref_meth))
 
 	  #the boolean vector indicating which one is not NA
 	  #In this way, Ometh_comm and ref_meth_comm have the same CpG site name for each row.
 	  no_na <- !is.na(ind)
-	  Ometh_comm <- Ometh[no_na,]
+	  Ometh_comm <- Ometh_tmp[no_na,]
 	  ref_meth_comm <- ref_meth[ind[no_na], ]
 
 
