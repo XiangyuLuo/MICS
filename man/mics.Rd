@@ -4,7 +4,8 @@
 \alias{mics}
 \title{Testing cell-type-specific mediation effects from bulk methylation data}
 \usage{
-mics(meth_data, S, X, Y, cell_prop = NA, meth_ref = NA, thd = 0)
+mics(meth_data, S, X, Y, cell_prop = NA, meth_ref = NA, cpg_ind = NA,
+  thd = 0)
 }
 \arguments{
 \item{meth_data}{The observed methylation matrix. Rows represent CpG sites and columns are samples.
@@ -21,6 +22,9 @@ Note that if there is only one confounding factor, X also needs to be in a matri
 
 \item{meth_ref}{The methylation reference matrix. If cell_prop is NA, meth_ref must be specified, where rows represent CpG sites and columns are cell type annotations.
 Its CpG site names are required in order to automatically align with the CpG site names of the observed methylation matrix when estimating cellular compositions.}
+
+\item{cpg_ind}{The index vector of the informative cpg sites. The default is NA, which means that all cpg sites are used to estimate
+the cellular compositions. Otherwise, only the informative cpg sites are used.}
 
 \item{thd}{The threshold used to filter out cell types with a small proportion. After estimating the cellular composition for each sample,
 we filter out the cell types with its proportions' 0.75 quantile across all samples less than the threshold. The default is 0, which means that no cell type would be removed.}
