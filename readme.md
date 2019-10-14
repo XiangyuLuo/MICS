@@ -1,4 +1,4 @@
-MICS is an R package to test cell-type-specific mediation effects in the genome wide epigenetic studies.
+MICS is short for "Mediation In a Cell-type-Specific fashion" and is implemented as an R package here to test cell-type-specific mediation effects in the genome wide epigenetic studies.
 
 The R code to run MICS can be seen in the example of the function mics.
 
