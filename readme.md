@@ -20,3 +20,5 @@ Check how to use the mics function using:
 ```
 
 Please see the R file in the demo folder to generate the simulation data, run MICS and plot the Q-Q plots.
+
+Once you have any questions, please email the package maintainer Xiangyu Luo via xiangyuluo@ruc.edu.cn
