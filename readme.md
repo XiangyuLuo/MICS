@@ -12,4 +12,11 @@ See an example:
 library(MICS)
 example(mics)
 ```
+
+Check how to use the mics function using:
+
+```
+?mics
+```
+
 Please see the R file in the demo folder to generate the simulation data, run MICS and plot the Q-Q plots.
