@@ -1,6 +1,8 @@
 rm(list = ls())
 set.seed(12022019)
-setwd("E:/EWAS_mediation/simulation/simulation_v3/")
+
+#set the working directory
+setwd("E:/EWAS_mediation/")
 
 ############################################################################
 # Generate Data 
@@ -141,6 +143,8 @@ load("simulated_data.RData")
 
 library(qqman)
 library(gplots)
+
+#install MICS package first
 library(MICS)
 
 out <- mics(meth_data = Ometh, S = S, X = X, Y = Y, meth_ref = mu_matr)
