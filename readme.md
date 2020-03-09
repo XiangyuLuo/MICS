@@ -19,6 +19,6 @@ Check how to use the mics function using:
 ?mics
 ```
 
-Please see the R file in the demo folder to generate the simulation data, run MICS and plot the Q-Q plots.
+Please see the R file in the demo folder to generate the simulation data, run MICS and compute power and false negative rates.
 
 Once you have any questions, please email Xiangyu Luo at xiangyuluo@ruc.edu.cn.
