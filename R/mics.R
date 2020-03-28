@@ -338,7 +338,12 @@ mics <- function(meth_data, S, X, Y, cell_prop = NA, meth_ref = NA, MCP.type = "
 	##############################################
 
 	#construct the design matrix x_matr (samples in rows)
-	x_matr <- cbind(t(P_matr), t(P_matr)*S, X)
+	x_matr <- cbind(t(P_matr), t(P_matr)*S)
+	
+	for(ell in 1:ncol(X)){
+	  x_matr <- cbind(x_matr, t(P_matr)*X[,ell])
+	}
+	
 	x_matr <- as.matrix(x_matr)
 
 	#x_matr divided by square root of the sum of squares
@@ -386,12 +391,22 @@ mics <- function(meth_data, S, X, Y, cell_prop = NA, meth_ref = NA, MCP.type = "
 		y_vec <- Ometh[j,] / sq_P2
 
 		#linear regression WITHOUT the intercept
-		fit.m <- lm(y_vec~-1+x_matr2)
-		fit.m.sum <- summary(fit.m)
+		#ordinary least squares
+		fit.o <- lm(y_vec~-1+x_matr2)
+
+		#regress abs. values of residuals to covariates
+		fit.r <- lm(abs(residuals(fit.o)) ~ -1+x_matr2)
+		
+		#weights = 1/ fitted abs. values of residuals
+		wts <- 1/fitted(fit.r)^2
+		
+		#weighted least squares
+		fit.w <- lm(y_vec~-1+x_matr2, weights = wts)
+		fit.w.sum <- summary(fit.w)
 
 		#the first K estimates are \nu_j
 		#the second K estimates are \gamma_tilde_j
-		gamma_tilde_pval <- rbind(gamma_tilde_pval, fit.m.sum$coef[K+(1:K),4])
+		gamma_tilde_pval <- rbind(gamma_tilde_pval, fit.w.sum$coef[K+(1:K),4])
 	}
 
 	colnames(gamma_tilde_pval) <- rownames(P_matr)
