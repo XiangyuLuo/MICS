@@ -397,7 +397,7 @@ mics <- function(meth_data, S, X, Y, cell_prop = NA, meth_ref = NA, MCP.type = "
 		#regress abs. values of residuals to covariates
 		fit.r <- lm(abs(residuals(fit.o)) ~ -1+x_matr2)
 		
-		#weights = 1/ squared fitted abs. values of residuals
+		#weights = 1/ squared fitted values of residuals
 		wts <- 1/fitted(fit.r)^2
 		
 		#weighted least squares
