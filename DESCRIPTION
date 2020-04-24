@@ -1,7 +1,7 @@
 Package: MICS
 Type: Package
 Title: Testing cell-type-specific mediation effects
-Version: 0.1.5
+Version: 0.1.6
 Author: Xiangyu Luo <xiangyuluo@ruc.edu.cn>, Zhonghua Liu <zhhliu@hku.hk>
 Maintainer: Xiangyu Luo <xiangyuluo@ruc.edu.cn>
 Description: In current epigenome-wide mediation analysis, we can only identify DNA methylation CpG sites that mediate a causal effect. Because the methylation values are mixed from a heterogeneous population of cells, it is crucial to get fine-grained results by detecting mediation CpG sites in a cell-typespecific way. The MICS package has the function to identify cell-type-specific mediation effects in genome-wide epigenetic studies and is user-friendly.
@@ -10,6 +10,6 @@ Imports: quadprog, MultiMed
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 NeedsCompilation: no
-Packaged: 2020-03-09 05:26:32 UTC; thinkpad
+Packaged: 2020-04-24 07:09:35 UTC; thinkpad
