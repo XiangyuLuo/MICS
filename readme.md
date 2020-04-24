@@ -7,10 +7,36 @@ Installation instruction:
 devtools::install_github("XiangyuLuo/MICS")
 ```
 
-See an example:
+Example code:
 ```
 library(MICS)
-example(mics)
+
+#load example data
+data(example_data)
+
+#perform mics
+out <- mics(meth_data = Ometh, S = S, X = X, Y = Y, cell_prop = P_matr, 
+                       MCP.type = "FDR", maxp_sq = TRUE)
+
+pval_MultiMed <- out$pval_joint_MultiMed
+
+#FDR threshold
+fdr_thred <- 0.2
+
+ind1 <- which(pval_MultiMed[,1] < fdr_thred)
+
+ind2 <- which(pval_MultiMed[,2] < fdr_thred)
+
+ind3 <- which(pval_MultiMed[,3] < fdr_thred)
+
+#detected CpG sites in cell type 1
+ind1
+
+#detected CpG sites in cell type 2
+ind2
+
+#detected CpG sites in cell type 3
+ind3
 ```
 
 Check how to use the mics function using:
