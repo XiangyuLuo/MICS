@@ -60,10 +60,7 @@ mics <- function(meth_data, S, X, Y, cell_prop = NA, meth_ref = NA, MCP.type = "
 	Ometh <- meth_data
 	ref_meth <- meth_ref
 
-	#covert M values to beta values if Ometh collects M value.
-	if(max(Ometh) > 1){
-		Ometh <- 2^(Ometh) / (1+2^(Ometh))
-	}
+	
 
 	#number of CpG sites
 	m <- nrow(Ometh)
