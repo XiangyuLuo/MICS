@@ -46,4 +46,4 @@ Check how to use the mics function using:
 ```
 
 
-Once you have any questions, please email Xiangyu Luo at xiangyuluo@ruc.edu.cn.
+Once you have any questions, please email Xiangyu Luo at xiangyuluo@ruc.edu.cn or Zhonghua Liu at zhhliu@hku.hk.
